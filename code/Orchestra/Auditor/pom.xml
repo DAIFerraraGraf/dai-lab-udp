@@ -22,7 +22,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>ch.heig.dai.lab.udp.Main</mainClass>
+                            <mainClass>ch.heig.dai.lab.udp.MainAuditor</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

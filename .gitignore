@@ -12,3 +12,4 @@ jspm_packages/
 /.idea/
 code/Orchestra/Auditor/target/
 code/Orchestra/Musician/target/
+/ParentProject.iml
