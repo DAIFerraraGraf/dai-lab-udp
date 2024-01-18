@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ch.heig.dai.lab.udp</groupId>
-    <artifactId>Main</artifactId>
+    <artifactId>Musician</artifactId>
     <version>1.0</version>
 
     <properties>
