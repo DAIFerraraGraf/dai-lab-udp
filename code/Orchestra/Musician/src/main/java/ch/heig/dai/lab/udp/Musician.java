@@ -20,13 +20,17 @@ enum Instrument{
 }
 
 public class Musician {
+    private  int port;
+    private  String ipAddress;
     private  Instrument instrument;
     private final DatagramSocket socket;
 
-    public Musician() throws Exception {
+    public Musician(String ip, int port) throws Exception {
         Random random = new Random();
         this.instrument = Instrument.values()[random.nextInt(Instrument.values().length)];
         this.socket = new DatagramSocket();
+        this.ipAddress = ip;
+        this.port = port;
     }
 
     public void run() {
@@ -35,10 +39,10 @@ public class Musician {
                 String message = instrument.sound;
                 byte[] buffer = message.getBytes();
 
-                InetAddress group = InetAddress.getByName("239.255.22.5");
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, 9904);
+                InetAddress group = InetAddress.getByName(ipAddress);
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, port);
                 socket.send(packet);
-
+                System.out.println("Sent: " + message);
                 Thread.sleep(1000);
             } catch (Exception e) {
                 e.printStackTrace();
