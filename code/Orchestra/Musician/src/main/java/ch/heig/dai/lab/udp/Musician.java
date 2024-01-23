@@ -3,7 +3,6 @@ package ch.heig.dai.lab.udp;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.Random;
 
 enum Instrument{
     piano("ti-ta-ti"),
@@ -25,9 +24,13 @@ public class Musician {
     private  Instrument instrument;
     private final DatagramSocket socket;
 
-    public Musician(String ip, int port) throws Exception {
-        Random random = new Random();
-        this.instrument = Instrument.values()[random.nextInt(Instrument.values().length)];
+    public Musician(String ip, int port, String instrument) throws Exception {
+        try {
+            this.instrument = Instrument.valueOf(instrument);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid instrument: " + instrument);
+        }
+
         this.socket = new DatagramSocket();
         this.ipAddress = ip;
         this.port = port;
