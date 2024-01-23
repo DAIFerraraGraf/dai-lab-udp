@@ -1,0 +1,11 @@
+# Use an official Java runtime as a parent image
+FROM maven:3.9.4-amazoncorretto-21
+
+# Set the working directory in the container to /app
+WORKDIR /app
+
+# Copy the executable JAR file from your host to the present location (.) in your image (i.e., /app)
+COPY ./code/Orchestra/Musician/target/Musician-1.0.jar .
+
+# Run the JAR file when the container launches
+ENTRYPOINT ["java", "-jar", "musician-1.0-SNAPSHOT.jar"]

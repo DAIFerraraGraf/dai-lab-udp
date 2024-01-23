@@ -1,0 +1,14 @@
+# Use an official Java runtime as a parent image
+FROM maven:3.9.4-amazoncorretto-21
+
+# Set the working directory in the container to /app
+WORKDIR /app
+
+# Copy the executable JAR file from your host to the present location (.) in your image (i.e., /app)
+COPY ./code/Orchestra/Auditor/target/Auditor-1.0.jar ./app
+
+# Make port 2205 available to the world outside this container
+EXPOSE 2205
+
+# Run the JAR file when the container launches
+ENTRYPOINT ["java", "-jar", "Auditor-1.0.jar"]
