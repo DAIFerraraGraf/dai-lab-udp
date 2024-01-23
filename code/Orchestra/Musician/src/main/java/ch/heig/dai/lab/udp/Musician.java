@@ -3,6 +3,7 @@ package ch.heig.dai.lab.udp;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.UUID;
 
 enum Instrument{
     piano("ti-ta-ti"),
@@ -19,12 +20,15 @@ enum Instrument{
 }
 
 public class Musician {
-    private  int port;
-    private  String ipAddress;
-    private  Instrument instrument;
+    private int port;
+    private String ipAddress;
+    private Instrument instrument;
     private final DatagramSocket socket;
+    private final UUID uuid;
 
     public Musician(String ip, int port, String instrument) throws Exception {
+        this.uuid = UUID.randomUUID();
+
         try {
             this.instrument = Instrument.valueOf(instrument);
         } catch (IllegalArgumentException e) {
@@ -39,14 +43,20 @@ public class Musician {
     public void run() {
         while (true) {
             try {
-                String message = instrument.sound;
-                byte[] buffer = message.getBytes();
+                // Création du payload JSON
+                String payload = String.format(
+                        "{\"uuid\":\"%s\",\"sound\":\"%s\"}",
+                        uuid.toString(), instrument.sound
+                );
+
+                byte[] buffer = payload.getBytes();
 
                 InetAddress group = InetAddress.getByName(ipAddress);
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, port);
                 socket.send(packet);
-                System.out.println("Sent: " + message);
-                Thread.sleep(1000);
+
+                System.out.println("Sent: " + payload);
+                Thread.sleep(1000); // Pause de 1 seconde
             } catch (Exception e) {
                 e.printStackTrace();
             }

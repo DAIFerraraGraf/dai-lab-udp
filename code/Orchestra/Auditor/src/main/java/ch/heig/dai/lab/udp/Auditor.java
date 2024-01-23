@@ -6,13 +6,12 @@ import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Auditor {
     private static final int UDP_PORT = 9904;
+    private static final String UDP_IP = "239.255.22.5";
     private static final int TCP_PORT = 2205;
     private static final int TIMEOUT_SECONDS = 5;
 
@@ -30,7 +29,7 @@ public class Auditor {
 
     private void startUdpListener() {
         try (MulticastSocket socket = new MulticastSocket(UDP_PORT)) {
-            InetAddress group = InetAddress.getByName("239.255.22.5");
+            InetAddress group = InetAddress.getByName(UDP_IP);
             socket.joinGroup(new InetSocketAddress(group, UDP_PORT), NetworkInterface.getByInetAddress(InetAddress.getLocalHost()));
 
             while (true) {
