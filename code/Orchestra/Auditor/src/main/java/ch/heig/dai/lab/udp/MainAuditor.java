@@ -5,7 +5,6 @@ import java.util.concurrent.ExecutorService;
 
 class MainAuditor {
 
-    private static final int numThreads = 2;
     public static void main(String[] args) {
         System.out.println("Auditor is running");
         Auditor auditor = new Auditor();

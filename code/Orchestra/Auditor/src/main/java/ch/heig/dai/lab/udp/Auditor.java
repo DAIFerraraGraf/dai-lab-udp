@@ -1,13 +1,14 @@
 package ch.heig.dai.lab.udp;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -22,6 +23,14 @@ enum InstrumentAuditor{
 
     private InstrumentAuditor(String sound){
         this.sound = sound;
+    }
+    public static String getInstrument(String sound){
+        for (InstrumentAuditor instrument : InstrumentAuditor.values()) {
+            if (instrument.sound.equalsIgnoreCase(sound)) {
+                return instrument.name();
+            }
+        }
+        return null;
     }
 }
 
@@ -71,12 +80,12 @@ public class Auditor {
         Gson gson = new Gson();
         MusicianInfo musicianInfo = gson.fromJson(message, MusicianInfo.class);
 
+        musicianInfo.setInstrument(InstrumentAuditor.getInstrument(musicianInfo.getSound()));
         // Update musician's last activity timestamp
         musicianInfo.setLastActivity(System.currentTimeMillis());
 
         // Update or add musician to the active musicians list
-//        activeMusicians.removeIf(m -> m.getUuid().equals(musicianInfo.getUuid()));
-//        activeMusicians.add(musicianInfo);
+
         activeMusicians.put(musicianInfo.getUuid(), musicianInfo);
     }
 
@@ -103,12 +112,11 @@ public class Auditor {
             }
 
             List<MusicianInfo> filteredMusicians = new ArrayList<>(activeMusicians.values());
-//            filteredMusicians.removeIf(m -> (System.currentTimeMillis() - m.getLastActivity()) > TIMEOUT_SECONDS * 1000);
-
 
             // Send JSON payload to the client
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().serializeNulls().create();
             String payload = gson.toJson(filteredMusicians);
+            System.out.println("Sending TCP message: " + payload);
             clientSocket.getOutputStream().write(payload.getBytes());
 
             System.out.println("Data send over TCP");
@@ -122,21 +130,24 @@ public class Auditor {
 }
 
 class MusicianInfo {
+    @Expose
     private String uuid;
+    private String sound;
+    @Expose
     private String instrument;
+    @Expose
     private long lastActivity;
 
-    public MusicianInfo(String uuid, String sound, long lastActivity) {
+    public MusicianInfo(String uuid, String sound) {
         this.uuid = uuid;
-        for(InstrumentAuditor instrument : InstrumentAuditor.values()) {
-            if(instrument.sound.equals(sound)) {
-                this.instrument = instrument.name();
-                break;
-            }
-        }
-        this.lastActivity = lastActivity;
+        this.sound = sound;
     }
-
+    public String getInstrument() {
+        return instrument;
+    }
+    public void setInstrument(String instrument) {
+        this.instrument = instrument;
+    }
     public String getUuid() {
         return uuid;
     }
@@ -145,12 +156,13 @@ class MusicianInfo {
         this.uuid = uuid;
     }
 
-    public String getInstrument() {
-        return instrument;
+    public String getSound() {
+
+        return sound;
     }
 
-    public void setInstrument(String instrument) {
-        this.instrument = instrument;
+    public void setSound(String sound) {
+        this.sound = sound;
     }
 
     public long getLastActivity() {
