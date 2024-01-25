@@ -11,13 +11,28 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+enum InstrumentAuditor{
+    piano("ti-ta-ti"),
+    trumpet("pouet"),
+    flute("trulu"),
+    violin("gzi-gzi"),
+    drum("boum-boum");
+
+    public String sound;
+
+    private InstrumentAuditor(String sound){
+        this.sound = sound;
+    }
+}
+
 public class Auditor {
     private static final int UDP_PORT = 9904;
     private static final String UDP_IP = "239.255.22.5";
     private static final int TCP_PORT = 2205;
     private static final int TIMEOUT_SECONDS = 5;
 
-    private ConcurrentLinkedQueue<MusicianInfo> activeMusicians = new ConcurrentLinkedQueue<>();
+//    private ConcurrentLinkedQueue<MusicianInfo> activeMusicians = new ConcurrentLinkedQueue<>();
+    private ConcurrentHashMap<String, MusicianInfo> activeMusicians = new ConcurrentHashMap<>();
 
     public Auditor() {
 
@@ -60,8 +75,9 @@ public class Auditor {
         musicianInfo.setLastActivity(System.currentTimeMillis());
 
         // Update or add musician to the active musicians list
-        activeMusicians.removeIf(m -> m.getUuid().equals(musicianInfo.getUuid()));
-        activeMusicians.add(musicianInfo);
+//        activeMusicians.removeIf(m -> m.getUuid().equals(musicianInfo.getUuid()));
+//        activeMusicians.add(musicianInfo);
+        activeMusicians.put(musicianInfo.getUuid(), musicianInfo);
     }
 
     private void startTcpListener() {
@@ -78,8 +94,17 @@ public class Auditor {
     private void handleTcpConnection(Socket clientSocket) {
         try {
             // Filter out inactive musicians
-            List<MusicianInfo> filteredMusicians = new ArrayList<>(activeMusicians);
-            filteredMusicians.removeIf(m -> (System.currentTimeMillis() - m.getLastActivity()) > TIMEOUT_SECONDS * 1000);
+//            List<MusicianInfo> filteredMusicians = new ArrayList<>(activeMusicians);
+
+            for(String key : activeMusicians.keySet()) {
+                if((System.currentTimeMillis() - activeMusicians.get(key).getLastActivity()) > TIMEOUT_SECONDS * 1000) {
+                    activeMusicians.remove(key);
+                }
+            }
+
+            List<MusicianInfo> filteredMusicians = new ArrayList<>(activeMusicians.values());
+//            filteredMusicians.removeIf(m -> (System.currentTimeMillis() - m.getLastActivity()) > TIMEOUT_SECONDS * 1000);
+
 
             // Send JSON payload to the client
             Gson gson = new Gson();
@@ -101,12 +126,14 @@ class MusicianInfo {
     private String instrument;
     private long lastActivity;
 
-    // Constructors, getters, setters, etc.
-
-    // Example constructor:
-    public MusicianInfo(String uuid, String instrument, long lastActivity) {
+    public MusicianInfo(String uuid, String sound, long lastActivity) {
         this.uuid = uuid;
-        this.instrument = instrument;
+        for(InstrumentAuditor instrument : InstrumentAuditor.values()) {
+            if(instrument.sound.equals(sound)) {
+                this.instrument = instrument.name();
+                break;
+            }
+        }
         this.lastActivity = lastActivity;
     }
 
