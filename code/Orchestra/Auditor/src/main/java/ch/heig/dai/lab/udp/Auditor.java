@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -15,7 +17,7 @@ public class Auditor {
     private static final int TCP_PORT = 2205;
     private static final int TIMEOUT_SECONDS = 5;
 
-    private List<MusicianInfo> activeMusicians = new ArrayList<>();
+    private ConcurrentLinkedQueue<MusicianInfo> activeMusicians = new ConcurrentLinkedQueue<>();
 
     public Auditor() {
 
@@ -23,14 +25,18 @@ public class Auditor {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         // Submit tasks for UDP and TCP listeners
-        executorService.submit(this::startUdpListener);
-        executorService.submit(this::startTcpListener);
+        try{
+            executorService.submit(this::startUdpListener);
+            executorService.submit(this::startTcpListener).get();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void startUdpListener() {
         try (MulticastSocket socket = new MulticastSocket(UDP_PORT)) {
             InetAddress group = InetAddress.getByName(UDP_IP);
-            socket.joinGroup(new InetSocketAddress(group, UDP_PORT), NetworkInterface.getByInetAddress(InetAddress.getLocalHost()));
+            socket.joinGroup(new InetSocketAddress(group, UDP_PORT), NetworkInterface.getByName("eth0"));
 
             while (true) {
                 byte[] buffer = new byte[1024];
@@ -38,9 +44,10 @@ public class Auditor {
                 socket.receive(packet);
 
                 String data = new String(packet.getData(), 0, packet.getLength());
+                System.out.println("Received UDP message: " + data);
                 processUdpMessage(data);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -79,6 +86,8 @@ public class Auditor {
             String payload = gson.toJson(filteredMusicians);
             clientSocket.getOutputStream().write(payload.getBytes());
 
+            System.out.println("Data send over TCP");
+            clientSocket.getOutputStream().flush();
             clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
