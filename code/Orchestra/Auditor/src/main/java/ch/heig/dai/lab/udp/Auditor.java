@@ -12,19 +12,20 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-enum InstrumentAuditor{
+enum InstrumentAuditor {
     piano("ti-ta-ti"),
     trumpet("pouet"),
     flute("trulu"),
     violin("gzi-gzi"),
     drum("boum-boum");
 
-    public String sound;
+    public final String sound;
 
-    private InstrumentAuditor(String sound){
+    private InstrumentAuditor(String sound) {
         this.sound = sound;
     }
-    public static String getInstrument(String sound){
+
+    public static String getInstrument(String sound) {
         for (InstrumentAuditor instrument : InstrumentAuditor.values()) {
             if (instrument.sound.equalsIgnoreCase(sound)) {
                 return instrument.name();
@@ -40,8 +41,7 @@ public class Auditor {
     private static final int TCP_PORT = 2205;
     private static final int TIMEOUT_SECONDS = 5;
 
-//    private ConcurrentLinkedQueue<MusicianInfo> activeMusicians = new ConcurrentLinkedQueue<>();
-    private ConcurrentHashMap<String, MusicianInfo> activeMusicians = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, MusicianInfo> activeMusicians = new ConcurrentHashMap<>();
 
     public Auditor() {
 
@@ -49,7 +49,7 @@ public class Auditor {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         // Submit tasks for UDP and TCP listeners
-        try{
+        try {
             executorService.submit(this::startUdpListener);
             executorService.submit(this::startTcpListener).get();
         } catch (Exception e) {
@@ -81,11 +81,11 @@ public class Auditor {
         MusicianInfo musicianInfo = gson.fromJson(message, MusicianInfo.class);
 
         musicianInfo.setInstrument(InstrumentAuditor.getInstrument(musicianInfo.getSound()));
+
         // Update musician's last activity timestamp
         musicianInfo.setLastActivity(System.currentTimeMillis());
 
         // Update or add musician to the active musicians list
-
         activeMusicians.put(musicianInfo.getUuid(), musicianInfo);
     }
 
@@ -103,10 +103,8 @@ public class Auditor {
     private void handleTcpConnection(Socket clientSocket) {
         try {
             // Filter out inactive musicians
-//            List<MusicianInfo> filteredMusicians = new ArrayList<>(activeMusicians);
-
-            for(String key : activeMusicians.keySet()) {
-                if((System.currentTimeMillis() - activeMusicians.get(key).getLastActivity()) > TIMEOUT_SECONDS * 1000) {
+            for (String key : activeMusicians.keySet()) {
+                if ((System.currentTimeMillis() - activeMusicians.get(key).getLastActivity()) > TIMEOUT_SECONDS * 1000) {
                     activeMusicians.remove(key);
                 }
             }
@@ -142,12 +140,15 @@ class MusicianInfo {
         this.uuid = uuid;
         this.sound = sound;
     }
+
     public String getInstrument() {
         return instrument;
     }
+
     public void setInstrument(String instrument) {
         this.instrument = instrument;
     }
+
     public String getUuid() {
         return uuid;
     }
