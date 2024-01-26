@@ -20,9 +20,9 @@ enum Instrument{
 }
 
 public class Musician {
-    private int port;
-    private String ipAddress;
-    private Instrument instrument;
+    private final int port;
+    private final String ipAddress;
+    private final Instrument instrument;
     private final DatagramSocket socket;
     private final UUID uuid;
 

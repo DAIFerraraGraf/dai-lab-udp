@@ -36,14 +36,19 @@ enum InstrumentAuditor {
 }
 
 public class Auditor {
-    private static final int UDP_PORT = 9904;
-    private static final String UDP_IP = "239.255.22.5";
-    private static final int TCP_PORT = 2205;
-    private static final int TIMEOUT_SECONDS = 5;
+    private final int UDP_PORT;
+    private final String UDP_IP;
+    private final int TCP_PORT;
+    private final int TIMEOUT_SECONDS;
 
     private final ConcurrentHashMap<String, MusicianInfo> activeMusicians = new ConcurrentHashMap<>();
 
-    public Auditor() {
+    public Auditor(String udpIP, int udpPort, int tcpPort, int timeoutSeconds) {
+
+        this.UDP_IP = udpIP;
+        this.UDP_PORT = udpPort;
+        this.TCP_PORT = tcpPort;
+        this.TIMEOUT_SECONDS = timeoutSeconds;
 
         // Create a thread pool with two threads
         ExecutorService executorService = Executors.newFixedThreadPool(2);
